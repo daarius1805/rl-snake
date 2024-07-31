@@ -9,7 +9,7 @@ class Linear_QNet(tf.keras.Model):
             # tf.keras.layers.Flatten(input_shape=(input_size,)),
             tf.keras.layers.Dense(units= input_size, activation = "relu"),
             tf.keras.layers.Dense(units= hidden_size, activation="relu"),
-            tf.keras.layers.Dense(units= 512, activation="relu"),
+            tf.keras.layers.Dense(units= hidden_size, activation="relu"),
             tf.keras.layers.Dense(units= output_size)
         ])
         self.model.compile(optimizer=tf.keras.optimizers.Adam(), loss='mse')
