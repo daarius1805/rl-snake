@@ -15,9 +15,9 @@ class Agent:
 
     def __init__(self):
         self.n_games = 0
-        self.epsilon = 0  # randomness
-        self.gamma = 0.9  # discount rate
-        self.memory = deque(maxlen=MAX_MEMORY)  # popleft()
+        self.epsilon = 0 
+        self.gamma = 0.9 
+        self.memory = deque(maxlen=MAX_MEMORY) 
         self.model = Linear_QNet(11, 256, 3)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
@@ -34,45 +34,41 @@ class Agent:
         dir_d = game.direction == Direction.DOWN
 
         state = [
-            # Danger straight
+            #dstraight
             (dir_r and game.is_collision(point_r)) or 
             (dir_l and game.is_collision(point_l)) or 
             (dir_u and game.is_collision(point_u)) or 
             (dir_d and game.is_collision(point_d)),
-
-            # Danger right
+            #dright
             (dir_u and game.is_collision(point_r)) or 
             (dir_d and game.is_collision(point_l)) or 
             (dir_l and game.is_collision(point_u)) or 
             (dir_r and game.is_collision(point_d)),
-
-            # Danger left
+            #dleft
             (dir_d and game.is_collision(point_r)) or 
             (dir_u and game.is_collision(point_l)) or 
             (dir_r and game.is_collision(point_u)) or 
             (dir_l and game.is_collision(point_d)),
-            
-            # Move direction
+            #direction
             dir_l,
             dir_r,
             dir_u,
             dir_d,
-            
-            # Food location 
-            game.food.x < game.head.x,  # food left
-            game.food.x > game.head.x,  # food right
-            game.food.y < game.head.y,  # food up
-            game.food.y > game.head.y  # food down
+            #foodlocation 
+            game.food.x < game.head.x,  #left
+            game.food.x > game.head.x,  #right
+            game.food.y < game.head.y,  #up
+            game.food.y > game.head.y  #down
         ]
 
         return np.array(state, dtype=int)
 
     def remember(self, state, action, reward, next_state, done):
-        self.memory.append((state, action, reward, next_state, done))  # popleft if MAX_MEMORY is reached
+        self.memory.append((state, action, reward, next_state, done))
 
     def train_long_memory(self):
         if len(self.memory) > BATCH_SIZE:
-            mini_sample = random.sample(self.memory, BATCH_SIZE)  # list of tuples
+            mini_sample = random.sample(self.memory, BATCH_SIZE)
         else:
             mini_sample = self.memory
 
@@ -90,7 +86,7 @@ class Agent:
             final_move[move] = 1
         else:
             state = tf.convert_to_tensor(state, dtype=tf.float32)
-            #state = tf.expand_dims(state, axis=0)  # Add batch dimension
+            #state = tf.expand_dims(state, axis=0)
             prediction = self.model(state)
             move = tf.argmax(prediction[0]).numpy()
             final_move[move] = 1

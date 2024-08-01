@@ -2,11 +2,11 @@ import tensorflow as tf
 import os
 import numpy as np
 
+
 class Linear_QNet(tf.keras.Model):
     def __init__(self, input_size, hidden_size, output_size):
         super(Linear_QNet, self).__init__()
         self.model = tf.keras.Sequential([
-            # tf.keras.layers.Flatten(input_shape=(input_size,)),
             tf.keras.layers.Dense(units= input_size, activation = "relu"),
             tf.keras.layers.Dense(units= hidden_size, activation="relu"),
             tf.keras.layers.Dense(units= output_size)
@@ -32,7 +32,7 @@ class QTrainer:
         self.loss_fn = tf.keras.losses.MeanSquaredError()
 
     def train_step(self, state, action, reward, next_state, done):
-        state = tf.convert_to_tensor(state, dtype=tf.float32)  # Convert state to float32
+        state = tf.convert_to_tensor(state, dtype=tf.float32)
         next_state = tf.convert_to_tensor(next_state, dtype=tf.float32)
         action = tf.convert_to_tensor(action, dtype=tf.int32)  # Convert action to int32 for one-hot encoding
         reward = tf.convert_to_tensor(reward, dtype=tf.float32)
@@ -45,10 +45,9 @@ class QTrainer:
             done = (done, )
 
         with tf.GradientTape() as tape:
-            # 1: predicted Q values with current state
             pred = self.model(state, training=True)
             
-            # Create a target tensor with the same shape as pred
+            #target tensor with the same shape as pred
             target = tf.identity(pred)
 
             for idx in range(len(done)):
@@ -56,13 +55,12 @@ class QTrainer:
                 if not done[idx]:
                     Q_new = reward[idx] + self.gamma * tf.reduce_max(self.model(next_state[idx], training=False))
 
-                # Create a mask to update the target tensor
+                #mask to update the target tensor
                 action_idx = tf.argmax(action[idx])
                 target = tf.tensor_scatter_nd_update(target, [[idx, action_idx]], [Q_new])
 
-            # Compute loss
+            #loss
             loss = self.loss_fn(target, pred)
-        
-        # 2: Backpropagation
+    
         grads = tape.gradient(loss, self.model.trainable_variables)
         self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
